@@ -28,6 +28,18 @@ public class Vector3(float x, float y, float z)
     public override string ToString() => $"{X}, {Y}, {Z}";
 }
 
+public class Quaternion(float x, float y, float z, float w)
+{
+    public static Quaternion Identity { get; } = new(0, 0, 0, 1);
+    
+    public float X { get; set; } = x;
+    public float Y { get; set; } = y;
+    public float Z { get; set; } = z;
+    public float W { get; set; } = w;
+
+    public override string ToString() => $"{X}, {Y}, {Z}, {W}";
+}
+
 public class Vector3Converter : JsonConverter<Vector3>
 {
     public override Vector3 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -56,10 +68,41 @@ public class Vector3Converter : JsonConverter<Vector3>
     }
 }
 
+public class QuaternionConverter : JsonConverter<Quaternion>
+{
+    public override Quaternion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartArray)
+            throw new JsonException("Expected a JSON array for Quaternion.");
+
+        reader.Read();
+        float x = reader.GetSingle();
+        reader.Read();
+        float y = reader.GetSingle();
+        reader.Read();
+        float z = reader.GetSingle();
+        reader.Read();
+        float w = reader.GetSingle();
+        reader.Read(); // Move past EndArray
+
+        return new Quaternion(x, y, z, w);
+    }
+
+    public override void Write(Utf8JsonWriter writer, Quaternion value, JsonSerializerOptions options)
+    {
+        writer.WriteStartArray();
+        writer.WriteNumberValue(value.X);
+        writer.WriteNumberValue(value.Y);
+        writer.WriteNumberValue(value.Z);
+        writer.WriteNumberValue(value.W);
+        writer.WriteEndArray();
+    }
+}
+
 public class TransformComponent : Component
 {
     public Vector3 Position { get; set; } = new(0, 0, 0);
-    public Vector3 Rotation { get; set; } = new(0, 0, 0);
+    public Quaternion Rotation { get; set; } = Quaternion.Identity;
     public float Scale { get; set; }
 }
 
@@ -67,6 +110,11 @@ public class ModelComponent : Component
 {
     public string Mesh { get; set; } = string.Empty;
     public string Texture { get; set; } = string.Empty;
+}
+
+public class CameraComponent : Component
+{
+    public float Fov { get; set; }
 }
 
 public class Entity
@@ -95,7 +143,10 @@ public class EntityConverter : JsonConverter<Entity>
             var componentTypeName = componentProperty.Name;
             var componentType = Type.GetType($"Editor.GameProject.{componentTypeName}, {Assembly.GetExecutingAssembly().FullName}");
             if (componentType == null)
-                throw new JsonException("Tried to parse a component with an unknown type: " + componentTypeName);
+            {
+                Console.WriteLine("Tried to parse a component with an unknown type: " + componentTypeName);
+                continue;
+            }
 
             var componentJson = componentProperty.Value;
 

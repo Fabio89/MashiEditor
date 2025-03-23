@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 
@@ -19,8 +20,8 @@ public partial class Viewport : UserControl
     private void UpdateViewportExtents()
     {
         Window mainWindow = Window.GetWindow(this) ?? throw new InvalidOperationException("Could not find main window.");
-        Point windowPosition = TransformToAncestor(mainWindow).Transform(new Point(0, 0));
-        Engine.SetViewport(_glfwHwnd, (int)windowPosition.X, (int)windowPosition.Y, (int)ActualWidth, (int)ActualHeight);
+        Point windowPosition = ViewportHost.TransformToAncestor(mainWindow).Transform(new Point(0, 0));
+        Engine.SetViewport(_glfwHwnd, (int)windowPosition.X, (int)windowPosition.Y, (int)ViewportHost.ActualWidth, (int)ViewportHost.ActualHeight);
     }
 
     public Viewport()
@@ -85,6 +86,9 @@ public partial class Viewport : UserControl
         UpdateViewportExtents();
         Engine.EngineInit(_glfwHwnd);
         CompositionTarget.Rendering += OnUpdate;
+        
+        Engine.AddKeyEventCallback(OnViewportInput);
+        
         EngineInitialised.Invoke();
     }
 
@@ -93,5 +97,10 @@ public partial class Viewport : UserControl
         CompositionTarget.Rendering -= OnUpdate;
         if (_glfwHwnd != IntPtr.Zero)
             Engine.EngineShutdown(_glfwHwnd);
+    }
+    
+    private void OnViewportInput(int key, int action)
+    {
+        Console.WriteLine($"Key Event: {key}, Action: {action}");
     }
 }

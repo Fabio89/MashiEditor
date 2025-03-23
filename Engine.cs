@@ -36,4 +36,9 @@ public static partial class Engine
     
     [DllImport("Engine.dll", EntryPoint = "patchEntity", CallingConvention = CallingConvention.Cdecl)]
     public static extern void PatchEntity(ulong entity, string json);
+    
+    public delegate void KeyEventCallback(int key, int action);
+
+    [DllImport("Engine.dll", EntryPoint = "addKeyEventCallback", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void AddKeyEventCallback(KeyEventCallback callback);
 }

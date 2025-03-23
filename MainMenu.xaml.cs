@@ -34,7 +34,7 @@ public partial class MainMenu
 
     private void OnClickMenuItem_Save(object sender, RoutedEventArgs e)
     {
-        throw new NotImplementedException();
+        Engine.SaveCurrentProject();
     }
 
     private void OnClickMenuItem_Exit(object sender, RoutedEventArgs e)

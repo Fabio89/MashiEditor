@@ -13,7 +13,7 @@ public static partial class Utils
     
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
-        Converters = { new EntityConverter(), new Vector3Converter() },
+        Converters = { new EntityConverter(), new Vector3Converter(), new QuaternionConverter() },
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
