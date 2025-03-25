@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Text;
 using System.Text.Json;
 
@@ -8,7 +9,8 @@ public class SceneManager
     private static SceneManager? _instance;
     public static SceneManager Instance => _instance ??= new SceneManager();
 
- 
+    public ObservableCollection<EntityViewModel> Entities { get; set; } = [];
+
     private readonly StringBuilder _jsonBuffer = new(4096);
 
     public event Action<Scene> Loaded = delegate { };
@@ -18,9 +20,10 @@ public class SceneManager
         try
         {
             _jsonBuffer.Clear();
-            Engine.SerializeScene(_jsonBuffer, _jsonBuffer.Capacity);
+            Engine.Interop.SerializeScene(_jsonBuffer, _jsonBuffer.Capacity);
             var sceneStr = _jsonBuffer.ToString();
             var scene = Editor.Utils.Deserialize<Scene>(sceneStr) ?? new Scene();
+            Entities = new ObservableCollection<EntityViewModel>(scene.Entities.Select(x => new EntityViewModel(x)));
             Loaded.Invoke(scene);
             return scene;
         }
@@ -28,9 +31,20 @@ public class SceneManager
         {
             Console.WriteLine(e);
             var scene = new Scene();
+            Entities = [];
             Loaded.Invoke(scene);
             return scene;
         }
+    }
+
+    public EntityViewModel GetEntity(EntityId id)
+    {
+        return Entities.First(x => x.Entity != null && x.Entity.Id == id);
+    }
+
+    public EntityViewModel GetEditorCamera()
+    {
+        return Entities.First(x => x.Entity != null && x.Entity.Components.ContainsKey(nameof(CameraComponent)));
     }
     
     private SceneManager() { }

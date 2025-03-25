@@ -117,9 +117,15 @@ public class CameraComponent : Component
     public float Fov { get; set; }
 }
 
+public class BoundingBoxComponent : Component
+{
+    public Vector3 MinLocal { get; set; } = new(0, 0, 0);
+    public Vector3 MaxLocal { get; set; } = new(0, 0, 0);
+}
+
 public class Entity
 {
-    public ulong Id { get; set; }
+    public EntityId Id { get; set; }
     public Dictionary<string, Component> Components { get; set; } = [];
 }
 

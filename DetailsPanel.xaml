@@ -13,6 +13,7 @@
     </UserControl.Resources>
 
     <ListBox x:Name="MyListBox"
+             ScrollViewer.CanContentScroll="False"
              ItemsSource="{Binding Components}"
              Padding="0" Margin="0"
              BorderThickness="1,1,0,0"
@@ -20,7 +21,7 @@
              Background="{StaticResource BackgroundColorPrimary}"
              HorizontalAlignment="Stretch"
              VerticalAlignment="Stretch"
-             Focusable="False"
+             Focusable="True"
              HorizontalContentAlignment="Stretch">
         <ListBox.ItemContainerStyle>
             <Style TargetType="ListBoxItem">
@@ -32,11 +33,24 @@
                 <Setter Property="Margin" Value="0" />
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border Background="Transparent"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
             </Style>
         </ListBox.ItemContainerStyle>
         <ListBox.ItemTemplate>
             <DataTemplate>
-                <Expander IsExpanded="True" HorizontalAlignment="Stretch" Focusable="False" FocusVisualStyle="{x:Null}">
+                <Expander IsExpanded="True" HorizontalAlignment="Stretch" Focusable="False" FocusVisualStyle="{x:Null}" PreviewMouseWheel="UIElement_OnPreviewMouseWheel">
                     <Expander.Header>
                         <Border Padding="0,4,0,4" HorizontalAlignment="Stretch" Focusable="False" FocusVisualStyle="{x:Null}">
                             <TextBlock Focusable="False" FocusVisualStyle="{x:Null}"

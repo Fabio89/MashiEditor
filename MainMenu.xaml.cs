@@ -34,7 +34,7 @@ public partial class MainMenu
 
     private void OnClickMenuItem_Save(object sender, RoutedEventArgs e)
     {
-        Engine.SaveCurrentProject();
+        Engine.Interop.SaveCurrentProject();
     }
 
     private void OnClickMenuItem_Exit(object sender, RoutedEventArgs e)

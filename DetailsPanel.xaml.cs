@@ -2,6 +2,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using Editor.GameProject;
 using Component = Editor.GameProject.Component;
 
@@ -76,32 +80,55 @@ public class EntityViewModel : ViewModelBase
         Console.WriteLine($"[EntityViewModel] Component property changed: {component.GetType().Name}.{e.PropertyName} = {property?.GetValue(component)}");
         var patch = Utils.Serialize(component, component.GetType());
         patch = $"{{ \"{component.GetType().Name}\": {patch} }}";
-        Engine.PatchEntity(_entity!.Id, patch);
+        Engine.Interop.PatchEntity(_entity!.Id, patch);
     }
 }
 
 public partial class DetailsPanel
 {
-    private ObservableCollection<EntityViewModel> Entities { get; set; } = [];
-
     private EntityViewModel? SelectedEntity { get; set; }
 
     public DetailsPanel()
     {
         InitializeComponent();
 
-        SceneManager.Instance.Loaded += OnSceneLoaded;
         EntitySelector.Instance.SelectionChanged += OnEntitySelectionChanged;
-    }
-
-    private void OnSceneLoaded(Scene scene)
-    {
-        Entities = new ObservableCollection<EntityViewModel>(scene.Entities.Select(x => new EntityViewModel(x)));
     }
 
     private void OnEntitySelectionChanged(Entity? obj)
     {
-        SelectedEntity = Entities.First(x => x.Entity == obj);
-        MyListBox.ItemsSource = SelectedEntity.Components;
+        SelectedEntity = obj != null ? SceneManager.Instance.GetEntity(obj.Id) : null;
+        MyListBox.ItemsSource = SelectedEntity?.Components;
+    }
+
+    private void UIElement_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        var scrollViewer = FindVisualChild<ScrollViewer>(MyListBox);
+        if (scrollViewer != null)
+        {
+            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - (e.Delta / 3.0));
+            e.Handled = true; // Prevent propagation
+        }
+
+    }
+    
+    // Helper to find the ScrollViewer inside the ListBox
+    private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T tChild)
+            {
+                return tChild;
+            }
+
+            var result = FindVisualChild<T>(child);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        return null;
     }
 }
